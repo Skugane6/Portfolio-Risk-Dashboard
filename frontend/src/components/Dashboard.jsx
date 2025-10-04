@@ -3,6 +3,8 @@ import PortfolioInput from './PortfolioInput';
 import MetricsCards from './MetricsCards';
 import StressTestResults from './StressTestResults';
 import PortfolioValueChart from './charts/PortfolioValueChart';
+import DrawdownChart from './charts/DrawdownChart';
+import RollingVolatilityChart from './charts/RollingVolatilityChart';
 import { calculateMetrics } from '../services/api';
 
 const Dashboard = () => {
@@ -70,6 +72,17 @@ const Dashboard = () => {
                   portfolioValues={results.metrics?.portfolio_values}
                   loading={loading}
                 />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <DrawdownChart
+                    drawdownData={results.metrics?.drawdown_data}
+                    loading={loading}
+                  />
+                  <RollingVolatilityChart
+                    volatilityData={results.metrics?.rolling_volatility}
+                    loading={loading}
+                  />
+                </div>
 
                 <StressTestResults
                   stressTests={results.stress_test_periods}

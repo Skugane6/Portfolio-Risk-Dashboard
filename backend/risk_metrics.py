@@ -237,6 +237,26 @@ def calculate_portfolio_values(portfolio_returns, initial_value=100000):
     return portfolio_values
 
 
+def calculate_rolling_volatility(portfolio_returns, window=30):
+    """
+    Calculate rolling volatility over time.
+
+    Args:
+        portfolio_returns (pd.Series): Daily portfolio returns
+        window (int): Rolling window size in days (default: 30)
+
+    Returns:
+        pd.Series: Annualized rolling volatility
+    """
+    # Calculate rolling standard deviation
+    rolling_std = portfolio_returns.rolling(window=window).std()
+
+    # Annualize: multiply by sqrt(252)
+    rolling_volatility = rolling_std * np.sqrt(252)
+
+    return rolling_volatility
+
+
 def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
     """
     Calculate all risk metrics for a portfolio.
@@ -260,6 +280,9 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
     # Calculate volatility
     daily_volatility = calculate_volatility(portfolio_returns, annualize=False)
     annual_volatility = calculate_volatility(portfolio_returns, annualize=True)
+
+    # Calculate rolling volatility
+    rolling_volatility = calculate_rolling_volatility(portfolio_returns, window=30)
 
     # Calculate VaR at different confidence levels
     historical_var_95 = calculate_historical_var(portfolio_returns, 0.95)
@@ -300,6 +323,24 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
         for date, value in portfolio_values.items()
     ]
 
+    # Prepare drawdown data for chart
+    drawdown_list = [
+        {
+            'date': date.strftime('%Y-%m-%d'),
+            'drawdown': float(dd)
+        }
+        for date, dd in drawdown_data['drawdown_series'].items()
+    ]
+
+    # Prepare rolling volatility data for chart
+    rolling_volatility_list = [
+        {
+            'date': date.strftime('%Y-%m-%d'),
+            'volatility': float(vol)
+        }
+        for date, vol in rolling_volatility.dropna().items()
+    ]
+
     metrics = {
         'annual_return': annual_return,
         'daily_volatility': daily_volatility,
@@ -322,7 +363,9 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
         },
         'beta': beta,
         'correlation_matrix': correlation_matrix.to_dict(),
-        'portfolio_values': portfolio_values_list
+        'portfolio_values': portfolio_values_list,
+        'drawdown_data': drawdown_list,
+        'rolling_volatility': rolling_volatility_list
     }
 
     logger.info("Risk metrics calculated successfully")
