@@ -341,6 +341,21 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
         for date, vol in rolling_volatility.dropna().items()
     ]
 
+    # Prepare return distribution for histogram (create bins)
+    num_bins = 50
+    returns_array = portfolio_returns.values
+    hist, bin_edges = np.histogram(returns_array, bins=num_bins)
+
+    return_distribution = [
+        {
+            'binStart': float(bin_edges[i]),
+            'binEnd': float(bin_edges[i + 1]),
+            'binMid': float((bin_edges[i] + bin_edges[i + 1]) / 2),
+            'count': int(hist[i])
+        }
+        for i in range(len(hist))
+    ]
+
     metrics = {
         'annual_return': annual_return,
         'daily_volatility': daily_volatility,
@@ -365,7 +380,8 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
         'correlation_matrix': correlation_matrix.to_dict(),
         'portfolio_values': portfolio_values_list,
         'drawdown_data': drawdown_list,
-        'rolling_volatility': rolling_volatility_list
+        'rolling_volatility': rolling_volatility_list,
+        'return_distribution': return_distribution
     }
 
     logger.info("Risk metrics calculated successfully")

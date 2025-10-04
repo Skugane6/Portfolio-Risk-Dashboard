@@ -5,6 +5,8 @@ import StressTestResults from './StressTestResults';
 import PortfolioValueChart from './charts/PortfolioValueChart';
 import DrawdownChart from './charts/DrawdownChart';
 import RollingVolatilityChart from './charts/RollingVolatilityChart';
+import CorrelationHeatmap from './charts/CorrelationHeatmap';
+import VaRHistogram from './charts/VaRHistogram';
 import { calculateMetrics } from '../services/api';
 
 const Dashboard = () => {
@@ -80,6 +82,20 @@ const Dashboard = () => {
                   />
                   <RollingVolatilityChart
                     volatilityData={results.metrics?.rolling_volatility}
+                    loading={loading}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <CorrelationHeatmap
+                    correlationMatrix={results.metrics?.correlation_matrix}
+                    tickers={results.tickers}
+                    loading={loading}
+                  />
+                  <VaRHistogram
+                    returnDistribution={results.metrics?.return_distribution}
+                    var95={results.metrics?.var?.daily?.historical_95}
+                    var99={results.metrics?.var?.daily?.historical_99}
                     loading={loading}
                   />
                 </div>
