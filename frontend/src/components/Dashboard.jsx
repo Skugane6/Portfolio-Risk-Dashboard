@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PortfolioInput from './PortfolioInput';
 import MetricsCards from './MetricsCards';
 import StressTestResults from './StressTestResults';
+import PortfolioValueChart from './charts/PortfolioValueChart';
 import { calculateMetrics } from '../services/api';
 
 const Dashboard = () => {
@@ -64,6 +65,11 @@ const Dashboard = () => {
                 </div>
 
                 <MetricsCards metrics={results.metrics} loading={loading} />
+
+                <PortfolioValueChart
+                  portfolioValues={results.metrics?.portfolio_values}
+                  loading={loading}
+                />
 
                 <StressTestResults
                   stressTests={results.stress_test_periods}

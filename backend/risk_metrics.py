@@ -217,6 +217,26 @@ def calculate_correlation_matrix(prices_df):
     return correlation_matrix
 
 
+def calculate_portfolio_values(portfolio_returns, initial_value=100000):
+    """
+    Calculate portfolio value over time from returns.
+
+    Args:
+        portfolio_returns (pd.Series): Daily portfolio returns
+        initial_value (float): Starting portfolio value (default: $100,000)
+
+    Returns:
+        pd.Series: Portfolio values over time
+    """
+    # Calculate cumulative returns: (1 + r1) * (1 + r2) * ... - 1
+    cumulative_returns = (1 + portfolio_returns).cumprod()
+
+    # Calculate portfolio values
+    portfolio_values = initial_value * cumulative_returns
+
+    return portfolio_values
+
+
 def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
     """
     Calculate all risk metrics for a portfolio.
@@ -233,6 +253,9 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
 
     # Calculate portfolio returns
     portfolio_returns = calculate_portfolio_returns(prices_df, weights)
+
+    # Calculate portfolio values over time
+    portfolio_values = calculate_portfolio_values(portfolio_returns)
 
     # Calculate volatility
     daily_volatility = calculate_volatility(portfolio_returns, annualize=False)
@@ -268,6 +291,15 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
     # Calculate annualized return
     annual_return = portfolio_returns.mean() * 252
 
+    # Prepare portfolio values for chart
+    portfolio_values_list = [
+        {
+            'date': date.strftime('%Y-%m-%d'),
+            'value': float(value)
+        }
+        for date, value in portfolio_values.items()
+    ]
+
     metrics = {
         'annual_return': annual_return,
         'daily_volatility': daily_volatility,
@@ -289,7 +321,8 @@ def calculate_all_metrics(prices_df, weights, benchmark_prices=None):
             }
         },
         'beta': beta,
-        'correlation_matrix': correlation_matrix.to_dict()
+        'correlation_matrix': correlation_matrix.to_dict(),
+        'portfolio_values': portfolio_values_list
     }
 
     logger.info("Risk metrics calculated successfully")
