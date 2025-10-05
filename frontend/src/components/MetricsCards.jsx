@@ -1,117 +1,137 @@
-const MetricCard = ({ label, value, tooltip, type, loading }) => {
-  const getColorClass = () => {
-    if (type === 'risk') return 'border-red-200 bg-red-50';
-    if (type === 'return') return 'border-green-200 bg-green-50';
-    return 'border-gray-200 bg-gray-50';
+import { motion } from 'framer-motion';
+import { TrendingDown, TrendingUp, Activity } from 'lucide-react';
+import { InfoTooltip } from './Tooltip';
+
+const MetricCard = ({ label, value, type, index, tooltip }) => {
+  const getStyles = () => {
+    if (type === 'risk') return {
+      bg: 'from-red-500/10 to-orange-500/10',
+      border: 'border-red-500/30',
+      text: 'text-red-400',
+      glow: 'hover:shadow-red-500/20'
+    };
+    if (type === 'return') return {
+      bg: 'from-green-500/10 to-emerald-500/10',
+      border: 'border-green-500/30',
+      text: 'text-green-400',
+      glow: 'hover:shadow-green-500/20'
+    };
+    return {
+      bg: 'from-blue-500/10 to-cyan-500/10',
+      border: 'border-blue-500/30',
+      text: 'text-blue-400',
+      glow: 'hover:shadow-blue-500/20'
+    };
   };
 
-  const getTextColor = () => {
-    if (type === 'risk') return 'text-red-700';
-    if (type === 'return') return 'text-green-700';
-    return 'text-gray-700';
+  const getIcon = () => {
+    if (type === 'risk') return <TrendingDown className="w-4 h-4" />;
+    if (type === 'return') return <TrendingUp className="w-4 h-4" />;
+    return <Activity className="w-4 h-4" />;
   };
+
+  const styles = getStyles();
 
   return (
-    <div className={`border-2 rounded-lg p-4 ${getColorClass()} transition-all hover:shadow-md`}>
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="text-sm font-medium text-gray-600">{label}</h3>
-        <div className="group relative">
-          <svg
-            className="w-4 h-4 text-gray-400 cursor-help"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
-            {tooltip}
-          </div>
-        </div>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      whileHover={{ y: -4, scale: 1.02 }}
+      className={`relative glass rounded-xl p-5 border ${styles.border} ${styles.glow} transition-all duration-300 overflow-visible group`}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${styles.bg} opacity-50 rounded-xl`}></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"></div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-10">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-700"></div>
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className={`${styles.text}`}>{getIcon()}</div>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</h3>
+          </div>
+          {tooltip && <InfoTooltip content={tooltip} />}
         </div>
-      ) : (
-        <p className={`text-2xl font-bold ${getTextColor()}`}>
+
+        <motion.p
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, delay: index * 0.05 + 0.2 }}
+          className={`text-3xl font-bold ${styles.text}`}
+        >
           {value}
-        </p>
-      )}
-    </div>
+        </motion.p>
+      </div>
+    </motion.div>
   );
 };
 
-const MetricsCards = ({ metrics, loading }) => {
+const MetricsCards = ({ metrics }) => {
   const metricsConfig = [
     {
       label: 'Portfolio Volatility',
       value: metrics?.annual_volatility ? `${(metrics.annual_volatility * 100).toFixed(2)}%` : 'N/A',
-      tooltip: 'Annualized standard deviation of portfolio returns. Higher values indicate greater price fluctuations.',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Annualized standard deviation of portfolio returns. Higher values indicate greater price fluctuations and risk.'
     },
     {
       label: 'Sharpe Ratio',
       value: metrics?.sharpe_ratio ? metrics.sharpe_ratio.toFixed(2) : 'N/A',
-      tooltip: 'Risk-adjusted return metric. Higher values indicate better return per unit of risk. Above 1.0 is good, above 2.0 is excellent.',
-      type: 'return'
+      type: 'return',
+      tooltip: 'Risk-adjusted return measure. Higher values indicate better return per unit of risk. Above 1 is good, above 2 is excellent.'
     },
     {
       label: '95% VaR (Daily)',
       value: metrics?.var?.daily?.historical_95 ? `${(metrics.var.daily.historical_95 * 100).toFixed(2)}%` : 'N/A',
-      tooltip: 'Value at Risk at 95% confidence. Expected maximum loss on 95% of trading days.',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Value at Risk: Maximum expected loss on 95% of days. There\'s a 5% chance of losing more than this amount daily.'
     },
     {
       label: '95% VaR (Annual)',
       value: metrics?.var?.annual?.historical_95 ? `${(metrics.var.annual.historical_95 * 100).toFixed(2)}%` : 'N/A',
-      tooltip: 'Annualized Value at Risk at 95% confidence. Expected maximum loss over a year with 95% confidence.',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Value at Risk: Maximum expected annual loss with 95% confidence. There\'s a 5% chance of losing more than this amount in a year.'
     },
     {
       label: '99% VaR (Daily)',
       value: metrics?.var?.daily?.historical_99 ? `${(metrics.var.daily.historical_99 * 100).toFixed(2)}%` : 'N/A',
-      tooltip: 'Value at Risk at 99% confidence. Expected maximum loss on 99% of trading days (more conservative).',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Value at Risk: Maximum expected loss on 99% of days. There\'s only a 1% chance of losing more than this amount daily.'
     },
     {
       label: '99% VaR (Annual)',
       value: metrics?.var?.annual?.historical_99 ? `${(metrics.var.annual.historical_99 * 100).toFixed(2)}%` : 'N/A',
-      tooltip: 'Annualized Value at Risk at 99% confidence. Expected maximum loss over a year with 99% confidence.',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Value at Risk: Maximum expected annual loss with 99% confidence. There\'s only a 1% chance of losing more than this amount in a year.'
     },
     {
       label: 'Maximum Drawdown',
       value: metrics?.max_drawdown ? `${(metrics.max_drawdown * 100).toFixed(2)}%` : 'N/A',
-      tooltip: 'Largest peak-to-trough decline in portfolio value. Indicates worst historical loss period.',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Largest peak-to-trough decline in portfolio value. Shows the worst loss experienced from a historical high point.'
     },
     {
       label: 'Beta (vs S&P 500)',
       value: metrics?.beta !== null && metrics?.beta !== undefined ? metrics.beta.toFixed(2) : 'N/A',
-      tooltip: 'Measure of portfolio volatility relative to the S&P 500. Beta of 1.0 means same volatility as market, >1.0 is more volatile, <1.0 is less volatile.',
-      type: 'risk'
+      type: 'risk',
+      tooltip: 'Measures portfolio sensitivity to S&P 500 movements. Beta of 1 moves with market, >1 more volatile, <1 less volatile.'
     }
   ];
 
   return (
-    <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Key Risk Metrics</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div>
+      <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <Activity className="w-6 h-6 text-cyan-400" />
+        Key Risk Metrics
+      </h2>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metricsConfig.map((metric, index) => (
           <MetricCard
             key={index}
+            index={index}
             label={metric.label}
             value={metric.value}
-            tooltip={metric.tooltip}
             type={metric.type}
-            loading={loading}
+            tooltip={metric.tooltip}
           />
         ))}
       </div>

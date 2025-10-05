@@ -1,4 +1,5 @@
-import React from 'react';
+import { motion } from 'framer-motion';
+import { AlertTriangle } from 'lucide-react';
 
 const StressTestResults = ({ stressTests, loading }) => {
   if (!stressTests || stressTests.length === 0) {
@@ -13,77 +14,74 @@ const StressTestResults = ({ stressTests, loading }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   };
 
   const getReturnColor = (value) => {
-    if (value === null || value === undefined) return 'text-gray-700';
-    return value >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+    if (value === null || value === undefined) return 'text-gray-400';
+    return value >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold';
   };
 
   return (
-    <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Stress Test Results</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.7 }}
+      className="glass-strong rounded-2xl p-6 border border-white/10"
+    >
+      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <AlertTriangle className="w-6 h-6 text-orange-400" />
+        Stress Test Results
+      </h3>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-32 bg-white rounded-lg shadow-md">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-700"></div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Period Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Start Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    End Date
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Portfolio Return
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Worst Day Loss
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {stressTests.map((test, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {test.period_name || test.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(test.start_date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(test.end_date)}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${getReturnColor(test.portfolio_return)}`}>
-                      {formatPercent(test.portfolio_return)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-semibold">
-                      {formatPercent(test.worst_day_loss)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <div className="overflow-x-auto rounded-xl">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="px-4 py-3 text-left font-bold text-gray-300">Period</th>
+              <th className="px-4 py-3 text-left font-bold text-gray-300">Start Date</th>
+              <th className="px-4 py-3 text-left font-bold text-gray-300">End Date</th>
+              <th className="px-4 py-3 text-right font-bold text-gray-300">Portfolio Return</th>
+              <th className="px-4 py-3 text-right font-bold text-gray-300">Worst Day Loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            {stressTests.map((test, index) => (
+              <motion.tr
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8 + index * 0.05 }}
+                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                className="border-b border-white/5 transition-colors"
+              >
+                <td className="px-4 py-3 font-semibold text-white">
+                  {test.period_name || test.name}
+                </td>
+                <td className="px-4 py-3 text-gray-400">
+                  {formatDate(test.start_date)}
+                </td>
+                <td className="px-4 py-3 text-gray-400">
+                  {formatDate(test.end_date)}
+                </td>
+                <td className={`px-4 py-3 text-right ${getReturnColor(test.portfolio_return)}`}>
+                  {formatPercent(test.portfolio_return)}
+                </td>
+                <td className="px-4 py-3 text-right text-red-400 font-bold">
+                  {formatPercent(test.worst_day_loss)}
+                </td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          {stressTests.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No stress test results available
-            </div>
-          )}
+      {stressTests.length === 0 && (
+        <div className="text-center py-8 text-gray-500 text-sm">
+          No stress test results available
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

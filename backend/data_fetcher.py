@@ -67,7 +67,9 @@ def fetch_multiple_tickers(tickers, start_date, end_date):
         # Extract adjusted close prices
         if len(tickers) == 1:
             # For single ticker, yfinance returns a different structure
-            prices = pd.DataFrame({tickers[0]: data['Close']})
+            # Create a DataFrame with the single ticker column
+            prices = pd.DataFrame(data['Close'])
+            prices.columns = [tickers[0]]
         else:
             prices = data['Close']
 
